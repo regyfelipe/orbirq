@@ -15,19 +15,15 @@ class QuestionOptionWidget extends StatelessWidget {
     Color borderColor;
 
     if (option.isCorrect == true) {
-      // Resposta correta
       backgroundColor = Colors.green.withOpacity(0.1);
       borderColor = Colors.green;
     } else if (option.isCorrect == false) {
-      // Resposta incorreta (quando o usuário selecionou uma opção errada)
       backgroundColor = Colors.red.withOpacity(0.1);
       borderColor = Colors.red;
     } else if (option.isSelected) {
-      // Opção selecionada (antes de mostrar resposta)
       backgroundColor = AppColors.buttonColor.withOpacity(0.1);
       borderColor = AppColors.buttonColor;
     } else {
-      // Estado normal (não selecionada)
       backgroundColor = Colors.white;
       borderColor = Colors.grey.withOpacity(0.3);
     }
@@ -45,7 +41,6 @@ class QuestionOptionWidget extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Círculo com letra
             Container(
               width: 32,
               height: 32,
@@ -71,7 +66,6 @@ class QuestionOptionWidget extends StatelessWidget {
               ),
             ),
             SizedBox(width: AppSizes.md),
-            // Texto da opção
             Expanded(
               child: Text(
                 option.text,

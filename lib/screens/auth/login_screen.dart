@@ -30,60 +30,91 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-  if (!_formKey.currentState!.validate()) return;
+    debugPrint('\n=== TENTATIVA DE LOGIN INICIADA ===');
+    
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('Validação do formulário falhou');
+      return;
+    }
 
-  setState(() => _isLoading = true);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    
+    debugPrint('Email: $email');
+    debugPrint('Senha: ${password.isNotEmpty ? '******' : 'vazia'}');
+    
+    setState(() => _isLoading = true);
 
-  try {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final success = await authService.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+    try {
+      debugPrint('Iniciando processo de autenticação...');
+      final authService = Provider.of<AuthService>(context, listen: false);
+      
+      debugPrint('Chamando authService.login()...');
+      final success = await authService.login(email, password);
+      
+      debugPrint('\n=== RESULTADO DO LOGIN ===');
+      debugPrint('Sucesso: $success');
+      debugPrint('Erro: ${authService.error}');
+      debugPrint('Tipo de usuário: ${authService.userType}');
+      debugPrint('Nome do usuário: ${authService.userName}');
+      debugPrint('ID do usuário: ${authService.userId}');
+      debugPrint('Dados do usuário: ${authService.userData}');
+      
+      if (!mounted) {
+        debugPrint('Widget não está mais montado, abortando...');
+        return;
+      }
 
-    // DEBUG: imprimir dados recebidos do login
-    debugPrint('Login attempt result: success=$success');
-    debugPrint('AuthService error: ${authService.error}');
-    debugPrint('AuthService userType: ${authService.userType}');
-    debugPrint('AuthService userName: ${authService.userName}');
-
-    if (mounted) {
       if (success) {
+        debugPrint('Login bem-sucedido, verificando tipo de usuário...');
         if (authService.userType != null) {
+          debugPrint('Navegando para a tela principal...');
           AppRoutes.pushNamedAndRemoveUntil(context, AppRoutes.main);
         } else {
+          debugPrint('Tipo de usuário não definido');
           ErrorUtils.showErrorSnackBar(
             context,
             'Erro ao carregar informações do usuário',
           );
         }
       } else if (authService.error != null) {
+        debugPrint('Erro durante o login: ${authService.error}');
         ErrorUtils.showErrorSnackBar(context, authService.error!);
+      } else {
+        debugPrint('Login falhou sem mensagem de erro específica');
+        ErrorUtils.showErrorSnackBar(context, 'Falha no login. Tente novamente.');
       }
-    }
-  } catch (e) {
+  } catch (e, stackTrace) {
+    debugPrint('\n=== ERRO DURANTE O LOGIN ===');
+    debugPrint('Tipo: ${e.runtimeType}');
+    debugPrint('Mensagem: $e');
+    debugPrint('Stack trace: $stackTrace');
+    
     if (mounted) {
+      final errorMessage = ErrorUtils.getFriendlyErrorMessage(e);
+      debugPrint('Mensagem amigável: $errorMessage');
+      
       ErrorUtils.showErrorSnackBar(
         context,
-        ErrorUtils.getFriendlyErrorMessage(e),
+        errorMessage,
       );
     }
   } finally {
+    debugPrint('Finalizando processo de login...');
     if (mounted) {
       setState(() => _isLoading = false);
     }
+    debugPrint('=== FIM DO PROCESSO DE LOGIN ===\n');
   }
 }
 
 
 
   void _handleForgotPassword() {
-    // Navegar para a tela de esqueceu a senha
     Navigator.pushNamed(context, AppRoutes.forgotPassword);
   }
 
   void _handleGoogleLogin() {
-    // Implementar login com Google
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Login com Google em desenvolvimento'),
@@ -95,7 +126,6 @@ class _LoginScreenState extends State<LoginScreen> {
  
 
   void _handleSignUp() {
-    // Navegar para a tela de cadastro
     Navigator.pushNamed(context, AppRoutes.signup);
   }
 

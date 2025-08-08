@@ -16,7 +16,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _emailSent = false;
+  final bool _emailSent = false;
 
   @override
   void dispose() {
@@ -27,21 +27,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _resetPassword() async {
     if (_formKey.currentState!.validate()) {
       final authService = Provider.of<AuthService>(context, listen: false);
-      // final success =
-      //     await authService.resetPassword(_emailController.text.trim());
-
-      // if (success && mounted) {
-      //   setState(() {
-      //     _emailSent = true;
-      //   });
-      // } else if (mounted) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       content: Text(authService.error ?? 'Erro ao recuperar senha'),
-      //       backgroundColor: Colors.red,
-      //     ),
-      //   );
-      // }
+      
     }
   }
 
@@ -58,7 +44,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   backgroundColor: AppColors.background,
   elevation: 0,
   iconTheme: const IconThemeData(
-    color: AppColors.primaryLight, // Define a cor do ícone de voltar
+    color: AppColors.primaryLight,
   ),
 ),
       body: SafeArea(

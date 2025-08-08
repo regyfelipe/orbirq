@@ -1,450 +1,273 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import '../models/question.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/services/logger_service.dart';
 
 class QuestaoService {
-  // Simulação de dados - em um app real viria de uma API ou banco de dados
-  static Question getSampleQuestion() {
-    return _getAllQuestions().first;
+  static final QuestaoService _instance = QuestaoService._internal();
+  final String _baseUrl = 'http://192.168.18.11:3000';
+  late final http.Client _httpClient;
+
+  factory QuestaoService() {
+    return _instance;
   }
 
-  static List<Question> getSampleQuestions() {
-    return _getAllQuestions();
+  QuestaoService._internal() {
+    final httpClient = HttpClient()
+      ..badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
+    _httpClient = IOClient(httpClient);
+  }
+  
+  @visibleForTesting
+  QuestaoService.testingConstructor(http.Client client) : _httpClient = client;
+
+  void dispose() {
+    _httpClient.close();
   }
 
-  static List<Question> _getAllQuestions() {
-    return [
-      // Questão 1 - Direito Constitucional (COM TEXTO)
-      Question(
-        id: 1,
-        discipline: 'Direito',
-        subject: 'Direito Constitucional',
-        year: 2005,
-        board: 'Cespe',
-        exam: 'PMCE',
-        text:
-            'A Lei nº 10.216/01, que diz respeito aos direitos e à proteção das pessoas acometidas de transtorno mental, determina que a internação',
-        supportingText:
-            'A Lei nº 10.216/01, conhecida como Lei da Reforma Psiquiátrica, estabelece diretrizes para a proteção e os direitos das pessoas portadoras de transtornos mentais e redireciona o modelo assistencial em saúde mental.',
-        options: [
-          QuestionOption(
-            letter: AppStrings.optionA,
-            text:
-                'de pessoas com transtorno mental em instituições psiquiátricas só será realizada mediante laudo da equipe de saúde circunstanciado e justificado.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionB,
-            text:
-                'voluntária em instituição psiquiátrica ocorrerá por solicitação da família acompanhada de laudo do médico psiquiatra.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionC,
-            text:
-                'compulsória é estabelecida por laudo médico específico e indicação de um familiar responsável pelos cuidados dispensados ao usuário.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionD,
-            text:
-                'voluntária se dá com consentimento do usuário que deve assinar um documento declarando que optou por essa medida.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionE,
-            text:
-                'involuntária se dá quando é direcionada a instituições asilares solicitada pela família e assinada pelo usuário.',
-          ),
-        ],
-        correctAnswer: 'A',
-        explanation:
-            'A Lei nº 10.216/01 estabelece que a internação de pessoas com transtorno mental em instituições psiquiátricas só será realizada mediante laudo da equipe de saúde circunstanciado e justificado, garantindo a proteção dos direitos fundamentais dos pacientes.',
-        type: QuestionType.withText,
-      ),
-
-      // Questão 2 - Direito Penal (SIMPLES)
-      Question(
-        id: 2,
-        discipline: 'Direito',
-        subject: 'Direito Penal',
-        year: 2018,
-        board: 'FGV',
-        exam: 'OAB',
-        text: 'Em relação ao crime de furto, assinale a alternativa correta:',
-        options: [
-          QuestionOption(
-            letter: AppStrings.optionA,
-            text:
-                'O furto qualificado pelo rompimento de obstáculo é sempre crime hediondo.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionB,
-            text: 'O furto de coisa comum é crime impossível.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionC,
-            text: 'O furto de uso é crime autônomo previsto no Código Penal.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionD,
-            text: 'O furto mediante fraude é crime de natureza permanente.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionE,
-            text:
-                'O furto de energia elétrica é crime específico previsto em lei especial.',
-          ),
-        ],
-        correctAnswer: 'E',
-        explanation:
-            'O furto de energia elétrica é crime específico previsto no art. 155, §4º do Código Penal, sendo considerado crime autônomo e não mera modalidade do furto simples.',
-        type: QuestionType.simple,
-      ),
-
-      // Questão 3 - Português (COM TEXTO)
-      Question(
-        id: 3,
-        discipline: 'Português',
-        subject: 'Gramática',
-        year: 2020,
-        board: 'Vunesp',
-        exam: 'PM-SP',
-        text:
-            'Assinale a alternativa em que a palavra destacada está sendo empregada com o mesmo sentido que aparece em "O tempo passa rápido.":',
-        supportingText:
-            'A palavra "tempo" pode ter diferentes significados dependendo do contexto em que é utilizada. Pode se referir ao tempo cronológico, às condições meteorológicas, ou a um período específico.',
-        options: [
-          QuestionOption(
-            letter: AppStrings.optionA,
-            text: 'Ele tem tempo para tudo.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionB,
-            text: 'O tempo está chuvoso.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionC,
-            text: 'Chegou na hora certa.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionD,
-            text: 'O tempo é relativo.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionE,
-            text: 'Perdeu muito tempo.',
-          ),
-        ],
-        correctAnswer: 'B',
-        explanation:
-            'Em "O tempo está chuvoso", a palavra "tempo" refere-se às condições meteorológicas, assim como em "O tempo passa rápido" refere-se à passagem do tempo cronológico.',
-        type: QuestionType.withText,
-      ),
-
-      // Questão 4 - Matemática (SIMPLES)
-      Question(
-        id: 4,
-        discipline: 'Matemática',
-        subject: 'Álgebra',
-        year: 2019,
-        board: 'Cesgranrio',
-        exam: 'Petrobras',
-        text: 'Se x + y = 10 e xy = 24, então o valor de x² + y² é:',
-        options: [
-          QuestionOption(letter: AppStrings.optionA, text: '52'),
-          QuestionOption(letter: AppStrings.optionB, text: '76'),
-          QuestionOption(letter: AppStrings.optionC, text: '100'),
-          QuestionOption(letter: AppStrings.optionD, text: '124'),
-          QuestionOption(letter: AppStrings.optionE, text: '148'),
-        ],
-        correctAnswer: 'A',
-        explanation:
-            'Usando a identidade (x + y)² = x² + y² + 2xy, temos: 10² = x² + y² + 2(24). Logo, 100 = x² + y² + 48. Portanto, x² + y² = 100 - 48 = 52.',
-        type: QuestionType.simple,
-      ),
-
-      // Questão 5 - Raciocínio Lógico (SIMPLES)
-      Question(
-        id: 5,
-        discipline: 'Raciocínio Lógico',
-        subject: 'Lógica de Argumentação',
-        year: 2021,
-        board: 'Cespe',
-        exam: 'TCU',
-        text:
-            'Considere as seguintes proposições: P: "João é médico"; Q: "João é professor". A proposição "João é médico ou professor" pode ser representada por:',
-        options: [
-          QuestionOption(letter: AppStrings.optionA, text: 'P ∧ Q'),
-          QuestionOption(letter: AppStrings.optionB, text: 'P ∨ Q'),
-          QuestionOption(letter: AppStrings.optionC, text: 'P → Q'),
-          QuestionOption(letter: AppStrings.optionD, text: 'P ↔ Q'),
-          QuestionOption(letter: AppStrings.optionE, text: '¬P ∧ ¬Q'),
-        ],
-        correctAnswer: 'B',
-        explanation:
-            'A proposição "João é médico ou professor" é uma disjunção inclusiva, representada por P ∨ Q, onde ∨ é o conectivo lógico "ou".',
-        type: QuestionType.simple,
-      ),
-
-      // Questão 6 - Direito Administrativo (COM TEXTO)
-      Question(
-        id: 6,
-        discipline: 'Direito',
-        subject: 'Direito Administrativo',
-        year: 2017,
-        board: 'FCC',
-        exam: 'TRT',
-        text:
-            'Sobre os princípios da Administração Pública, é correto afirmar que:',
-        supportingText:
-            'Os princípios da Administração Pública estão previstos no art. 37 da Constituição Federal, sendo eles: legalidade, impessoalidade, moralidade, publicidade e eficiência. Estes princípios orientam toda a atividade administrativa.',
-        options: [
-          QuestionOption(
-            letter: AppStrings.optionA,
-            text: 'A moralidade administrativa é princípio implícito.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionB,
-            text: 'A publicidade é princípio expresso na Constituição.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionC,
-            text: 'A eficiência foi incluída pela EC 19/98.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionD,
-            text: 'A impessoalidade é princípio implícito.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionE,
-            text: 'A legalidade é princípio implícito.',
-          ),
-        ],
-        correctAnswer: 'C',
-        explanation:
-            'A eficiência foi incluída como princípio expresso da Administração Pública pela Emenda Constitucional nº 19/1998, que reformou a administração pública.',
-        type: QuestionType.withText,
-      ),
-
-      // Questão 7 - Informática (COM IMAGEM)
-      Question(
-        id: 7,
-        discipline: 'Informática',
-        subject: 'Microsoft Office',
-        year: 2022,
-        board: 'Cespe',
-        exam: 'BB',
-        text:
-            'No Microsoft Excel, a função que retorna o número de células não vazias em um intervalo é:',
-        imageUrl:
-            'https://support.microsoft.com/images/pt-br/5feb1ba8-a0fb-49d1-8188-dcf1ba878a42?format=avif&w=800',
-        options: [
-          QuestionOption(letter: AppStrings.optionA, text: 'COUNT()'),
-          QuestionOption(letter: AppStrings.optionB, text: 'COUNTA()'),
-          QuestionOption(letter: AppStrings.optionC, text: 'COUNTBLANK()'),
-          QuestionOption(letter: AppStrings.optionD, text: 'COUNTIF()'),
-          QuestionOption(letter: AppStrings.optionE, text: 'COUNTIFS()'),
-        ],
-        correctAnswer: 'B',
-        explanation:
-            'A função COUNTA() conta o número de células não vazias em um intervalo, incluindo células que contêm texto, números, valores lógicos e erros.',
-        type: QuestionType.withImage,
-      ),
-
-      // Questão 8 - Atualidades (SIMPLES)
-      Question(
-        id: 8,
-        discipline: 'Atualidades',
-        subject: 'Política Internacional',
-        year: 2023,
-        board: 'Cespe',
-        exam: 'Câmara dos Deputados',
-        text: 'Em 2023, qual país foi admitido como membro da OTAN?',
-        options: [
-          QuestionOption(letter: AppStrings.optionA, text: 'Ucrânia'),
-          QuestionOption(letter: AppStrings.optionB, text: 'Finlândia'),
-          QuestionOption(letter: AppStrings.optionC, text: 'Suécia'),
-          QuestionOption(letter: AppStrings.optionD, text: 'Turquia'),
-          QuestionOption(letter: AppStrings.optionE, text: 'Polônia'),
-        ],
-        correctAnswer: 'B',
-        explanation:
-            'A Finlândia foi admitida como membro da OTAN em 2023, tornando-se o 31º membro da aliança militar.',
-        type: QuestionType.simple,
-      ),
-
-      // Questão 9 - Direito Civil (COM TEXTO)
-      Question(
-        id: 9,
-        discipline: 'Direito',
-        subject: 'Direito Civil',
-        year: 2016,
-        board: 'FGV',
-        exam: 'OAB',
-        text: 'Sobre a responsabilidade civil, é correto afirmar que:',
-        supportingText:
-            'A responsabilidade civil pode ser subjetiva ou objetiva. A responsabilidade subjetiva exige a comprovação de culpa, enquanto a objetiva independe de culpa, baseando-se na teoria do risco.',
-        options: [
-          QuestionOption(
-            letter: AppStrings.optionA,
-            text: 'A responsabilidade objetiva independe de culpa.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionB,
-            text: 'A responsabilidade subjetiva prescinde de culpa.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionC,
-            text: 'A responsabilidade civil sempre decorre de ato ilícito.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionD,
-            text: 'A responsabilidade civil não admite excludentes.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionE,
-            text: 'A responsabilidade civil é sempre solidária.',
-          ),
-        ],
-        correctAnswer: 'A',
-        explanation:
-            'A responsabilidade objetiva independe de culpa, baseando-se na teoria do risco, onde o agente responde pelos danos causados independentemente de ter agido com culpa.',
-        type: QuestionType.withText,
-      ),
-
-      // Questão 10 - História (COM IMAGEM)
-      Question(
-        id: 10,
-        discipline: 'História',
-        subject: 'História do Brasil',
-        year: 2020,
-        board: 'Vunesp',
-        exam: 'PM-SP',
-        text: 'A Proclamação da República no Brasil ocorreu em:',
-        imageUrl:
-            'https://via.placeholder.com/400x200/FF5722/FFFFFF?text=Proclamação+da+República',
-        options: [
-          QuestionOption(
-            letter: AppStrings.optionA,
-            text: '7 de setembro de 1822',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionB,
-            text: '15 de novembro de 1889',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionC,
-            text: '13 de maio de 1888',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionD,
-            text: '9 de janeiro de 1824',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionE,
-            text: '21 de abril de 1792',
-          ),
-        ],
-        correctAnswer: 'B',
-        explanation:
-            'A Proclamação da República no Brasil ocorreu em 15 de novembro de 1889, liderada pelo Marechal Deodoro da Fonseca, pondo fim ao período imperial.',
-        type: QuestionType.withImage,
-      ),
-
-      // Questão 11 - Geografia (SIMPLES)
-      Question(
-        id: 11,
-        discipline: 'Geografia',
-        subject: 'Geografia Física',
-        year: 2021,
-        board: 'Cespe',
-        exam: 'UnB',
-        text: 'Qual é o maior oceano do mundo?',
-        options: [
-          QuestionOption(letter: AppStrings.optionA, text: 'Oceano Atlântico'),
-          QuestionOption(letter: AppStrings.optionB, text: 'Oceano Pacífico'),
-          QuestionOption(letter: AppStrings.optionC, text: 'Oceano Índico'),
-          QuestionOption(letter: AppStrings.optionD, text: 'Oceano Ártico'),
-          QuestionOption(letter: AppStrings.optionE, text: 'Oceano Antártico'),
-        ],
-        correctAnswer: 'B',
-        explanation:
-            'O Oceano Pacífico é o maior oceano do mundo, cobrindo aproximadamente um terço da superfície da Terra.',
-        type: QuestionType.simple,
-      ),
-
-      // Questão 12 - Biologia (COM TEXTO)
-      Question(
-        id: 12,
-        discipline: 'Biologia',
-        subject: 'Genética',
-        year: 2022,
-        board: 'Vunesp',
-        exam: 'UNESP',
-        text: 'Sobre a herança genética, é correto afirmar que:',
-        supportingText:
-            'A herança genética é o processo pelo qual as características são passadas dos pais para os filhos através dos genes. Os genes são segmentos de DNA que contêm as instruções para a síntese de proteínas.',
-        options: [
-          QuestionOption(
-            letter: AppStrings.optionA,
-            text: 'Todos os genes são dominantes.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionB,
-            text: 'Os genes estão localizados no citoplasma.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionC,
-            text: 'Os genes são segmentos de DNA.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionD,
-            text: 'A herança não é influenciada pelo ambiente.',
-          ),
-          QuestionOption(
-            letter: AppStrings.optionE,
-            text: 'Todos os caracteres são determinados por um único gene.',
-          ),
-        ],
-        correctAnswer: 'C',
-        explanation:
-            'Os genes são segmentos de DNA que contêm as instruções para a síntese de proteínas e determinam as características hereditárias.',
-        type: QuestionType.withText,
-      ),
-    ];
-  }
-
-  // Métodos futuros para integração com API
-  static Future<List<Question>> fetchQuestions() async {
-    // Simulação de chamada de API
-    await Future.delayed(const Duration(milliseconds: 500));
-    return _getAllQuestions();
-  }
-
-  static Future<Question?> fetchQuestionById(int id) async {
-    // Simulação de chamada de API
-    await Future.delayed(const Duration(milliseconds: 300));
-    final questions = _getAllQuestions();
+  Future<List<Question>> getAllQuestions({
+    int page = 1,
+    int limit = 10,
+    String? discipline,
+    String? subject,
+    int? year,
+    String? board,
+  }) async {
     try {
-      return questions.firstWhere((q) => q.id == id);
-    } catch (e) {
-      return null;
+      LoggerService.info('🔍 Buscando questões da API...');
+      
+      final uri = Uri.parse('$_baseUrl/questions/questions').replace(
+        queryParameters: {
+          'page': page.toString(),
+          'limit': limit.toString(),
+          if (discipline != null) 'discipline': discipline,
+          if (subject != null) 'subject': subject,
+          if (year != null) 'year': year.toString(),
+          if (board != null) 'board': board,
+        }..removeWhere((key, value) => value == null || value == 'null'),
+      );
+
+      LoggerService.info('🌐 URL da requisição: ${uri.toString()}');
+      
+      final response = await _httpClient.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          LoggerService.error('⏰ Timeout ao buscar questões: A requisição demorou mais de 10 segundos');
+          throw Exception('Tempo de conexão esgotado. Verifique sua conexão com a internet.');
+        },
+      );
+
+      LoggerService.info('📥 Resposta recebida - Status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        try {
+          final data = jsonDecode(utf8.decode(response.bodyBytes));
+          LoggerService.debug('📦 Dados brutos da resposta: $data');
+          
+          if (data == null) {
+            LoggerService.warning('⚠️ A resposta da API está vazia');
+            return [];
+          }
+          
+          if (data['data'] == null) {
+            LoggerService.warning('⚠️ A resposta não contém o campo "data"');
+            LoggerService.debug('Conteúdo da resposta: ${response.body}');
+            return [];
+          }
+          
+          final List<dynamic> questionsData = data['data'] is List ? data['data'] : [];
+          LoggerService.info('📚 ${questionsData.length} questões recebidas da API');
+          
+          if (questionsData.isEmpty) {
+            LoggerService.warning('ℹ️ Nenhuma questão encontrada com os filtros fornecidos');
+            return [];
+          }
+          
+          final List<Question> questions = [];
+          int errorCount = 0;
+          
+          for (var item in questionsData) {
+            try {
+              if (item['options'] is String) {
+                try {
+                  item['options'] = jsonDecode(item['options']);
+                } catch (e) {
+                  LoggerService.warning('⚠️ Erro ao decodificar opções da questão ${item['id']}: $e');
+                  item['options'] = [];
+                }
+              }
+              
+              final question = Question.fromMap({
+                'id': item['id'] ?? 0,
+                'discipline': item['discipline'] ?? 'Desconhecida',
+                'subject': item['subject'] ?? 'Desconhecida',
+                'year': item['year'] ?? DateTime.now().year,
+                'board': item['board'] ?? '',
+                'exam': item['exam'] ?? '',
+                'text': item['text'] ?? 'Texto da questão não disponível',
+                'supportingText': item['supportingText'],
+                'imageUrl': item['imageUrl'],
+                'correctAnswer': item['correctAnswer'] ?? '',
+                'explanation': item['explanation'],
+                'type': item['type'] ?? 'simple',
+                'options': item['options'] ?? [],
+              });
+              
+              questions.add(question);
+              LoggerService.debug('✅ Questão carregada: ${item['id']} - ${item['text'].toString().substring(0, item['text'].toString().length > 30 ? 30 : item['text'].toString().length)}...');
+            } catch (e, stackTrace) {
+              errorCount++;
+              LoggerService.error(
+                '❌ Erro ao converter questão ${item['id'] ?? 'desconhecida'}', 
+                error: e,
+                stackTrace: stackTrace,
+              );
+              LoggerService.debug('Item com erro: $item');
+            }
+          }
+
+          if (errorCount > 0) {
+            LoggerService.warning('⚠️ $errorCount questões não puderam ser carregadas devido a erros');
+          }
+          
+          if (questions.isEmpty) {
+            LoggerService.warning('ℹ️ Nenhuma questão pôde ser carregada devido a erros de formatação');
+          } else {
+            LoggerService.success('✅ ${questions.length} questões carregadas com sucesso');
+          }
+          
+          return questions;
+        } catch (e, stackTrace) {
+          LoggerService.error(
+            '❌ Erro ao processar a resposta da API', 
+            error: e,
+            stackTrace: stackTrace,
+          );
+          LoggerService.debug('Conteúdo da resposta: ${response.body}');
+          throw Exception('Erro ao processar os dados recebidos do servidor');
+        }
+      } else {
+        final errorMsg = '❌ Erro ao buscar questões: ${response.statusCode} - ${response.body}';
+        LoggerService.error(errorMsg);
+        
+        if (response.statusCode >= 500) {
+          throw Exception('Erro no servidor. Por favor, tente novamente mais tarde.');
+        } else if (response.statusCode == 404) {
+          throw Exception('Endpoint não encontrado. Verifique a URL da API.');
+        } else if (response.statusCode == 401) {
+          throw Exception('Não autorizado. Por favor, faça login novamente.');
+        } else {
+          throw Exception('Erro ao buscar questões. Código: ${response.statusCode}');
+        }
+      }
+    } on SocketException catch (e) {
+      final errorMsg = '🌐 Erro de conexão: ${e.message}';
+      LoggerService.error(errorMsg);
+      throw Exception('Não foi possível conectar ao servidor. Verifique sua conexão com a internet.');
+    } on TimeoutException catch (e) {
+      final errorMsg = '⏰ Timeout ao buscar questões: ${e.message ?? 'A requisição excedeu o tempo limite'}';
+      LoggerService.error(errorMsg);
+      throw Exception('A conexão com o servidor está lenta. Tente novamente mais tarde.');
+    } on FormatException catch (e) {
+      final errorMsg = '📄 Erro de formatação na resposta: ${e.message}';
+      LoggerService.error(errorMsg);
+      throw Exception('Resposta inválida do servidor. Por favor, tente novamente.');
+    } on http.ClientException catch (e) {
+      final errorMsg = '🔌 Erro de cliente HTTP: ${e.message}';
+      LoggerService.error(errorMsg);
+      throw Exception('Erro ao se comunicar com o servidor. Verifique sua conexão e tente novamente.');
+    } catch (e, stackTrace) {
+      LoggerService.error(
+        '❌ Erro inesperado ao buscar questões', 
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Ocorreu um erro inesperado. Por favor, tente novamente.');
     }
   }
 
-  // Método para buscar questões por disciplina
-  static List<Question> getQuestionsByDiscipline(String discipline) {
-    return _getAllQuestions().where((q) => q.discipline == discipline).toList();
+  Future<Question> getQuestionById(int id) async {
+    try {
+      LoggerService.info('Buscando questão $id da API...');
+      
+      final uri = Uri.parse('$_baseUrl/questions/$id');
+      LoggerService.debug('URL da requisição: $uri');
+      
+      final response = await _httpClient.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        
+        if (data == null || data['data'] == null) {
+          throw Exception('Questão não encontrada');
+        }
+        
+        final questionData = data['data'];
+        
+        if (questionData['options'] is String) {
+          questionData['options'] = jsonDecode(questionData['options']);
+        }
+        
+        final questionMap = {
+          'id': questionData['id'],
+          'discipline': questionData['discipline'] ?? '',
+          'subject': questionData['subject'] ?? '',
+          'year': questionData['year'],
+          'board': questionData['board'] ?? '',
+          'exam': questionData['exam'] ?? '',
+          'text': questionData['text'] ?? '',
+          'supportingText': questionData['supportingText'] ?? '',
+          'imageUrl': questionData['imageUrl'],
+          'correctAnswer': questionData['correctAnswer'] ?? '',
+          'explanation': questionData['explanation'] ?? '',
+          'type': questionData['type'] ?? 'simple',
+          'options': questionData['options'] ?? [],
+        };
+        
+        final question = Question.fromMap(questionMap);
+        LoggerService.info('✅ Questão $id carregada com sucesso');
+        return question;
+      } else {
+        final errorMsg = 'Erro ao buscar questão: ${response.statusCode} - ${response.body}';
+        LoggerService.error(errorMsg);
+        throw Exception(errorMsg);
+      }
+    } catch (e, stackTrace) {
+      LoggerService.error(
+        'Erro ao buscar questão $id', 
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+  
+  Future<List<Question>> getQuestionsByDiscipline(String discipline) async {
+    return getAllQuestions(discipline: discipline);
   }
 
-  // Método para buscar questões por assunto
-  static List<Question> getQuestionsBySubject(String subject) {
-    return _getAllQuestions().where((q) => q.subject == subject).toList();
+  Future<List<Question>> getQuestionsBySubject(String subject) async {
+    return getAllQuestions(subject: subject);
   }
 
-  // Método para buscar questões por banca
-  static List<Question> getQuestionsByBoard(String board) {
-    return _getAllQuestions().where((q) => q.board == board).toList();
+  Future<List<Question>> getQuestionsByBoard(String board) async {
+    return getAllQuestions(board: board);
   }
 
-  // Método para buscar questões por tipo
-  static List<Question> getQuestionsByType(QuestionType type) {
-    return _getAllQuestions().where((q) => q.type == type).toList();
+  Future<List<Question>> getQuestionsByYear(int year) async {
+    return getAllQuestions(year: year);
   }
 }

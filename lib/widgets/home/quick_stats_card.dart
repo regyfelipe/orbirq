@@ -20,7 +20,9 @@ class QuickStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentualAcertos = (acertos / totalQuestoes * 100).round();
+    final percentualAcertos = totalQuestoes > 0 
+        ? (acertos / totalQuestoes * 100).round() 
+        : 0;
 
     return GestureDetector(
       onTap: onTap,

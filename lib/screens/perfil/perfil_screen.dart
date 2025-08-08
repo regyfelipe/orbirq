@@ -1,3 +1,4 @@
+import 'dart:convert'; // para base64Decode
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:orbirq/core/theme/Colors.dart';
@@ -14,13 +15,29 @@ class PerfilScreen extends StatelessWidget {
 
     final nomeUsuario = authService.userName ?? 'Usuário';
     final emailUsuario = authService.userData?['email'] ?? 'email@exemplo.com';
-    final fotoUrl = authService.userData?['photoUrl'] ??
-        "https://i.pravatar.cc/150?img=12";
+    final fotoBase64 = authService.userData?['photoUrl'];
+
+    ImageProvider profileImage;
+
+    if (fotoBase64 != null && fotoBase64.isNotEmpty) {
+      try {
+        // Decodifica base64 para bytes e cria imagem em memória
+        final bytes = base64Decode(fotoBase64);
+        profileImage = MemoryImage(bytes);
+      } catch (e) {
+        // Caso base64 inválido, usa uma imagem padrão via URL
+        profileImage = NetworkImage("https://i.pravatar.cc/150?img=12");
+      }
+    } else {
+      // Caso não exista foto, usa uma imagem padrão via URL
+      profileImage = NetworkImage("https://i.pravatar.cc/150?img=12");
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
+  
           AppStrings.navPerfil,
           style: const TextStyle(
             color: Colors.white,
@@ -30,7 +47,7 @@ class PerfilScreen extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.primary,
         elevation: 0,
       ),
       body: Padding(
@@ -54,7 +71,7 @@ class PerfilScreen extends StatelessWidget {
               child: CircleAvatar(
                 radius: 65,
                 backgroundColor: AppColors.primaryLight,
-                backgroundImage: NetworkImage(fotoUrl),
+                backgroundImage: profileImage,
               ),
             ),
 
@@ -67,7 +84,7 @@ class PerfilScreen extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppColors.primaryLight,
                 letterSpacing: 0.8,
               ),
             ),
@@ -105,7 +122,8 @@ class PerfilScreen extends StatelessWidget {
               ),
               margin: EdgeInsets.zero,
               child: ListTile(
-                leading: const Icon(Icons.badge_outlined, color: AppColors.primary),
+                leading:
+                    const Icon(Icons.badge_outlined, color: AppColors.primary),
                 title: const Text(
                   'Tipo de usuário',
                   style: TextStyle(fontWeight: FontWeight.w600),

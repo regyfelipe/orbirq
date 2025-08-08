@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:orbirq/core/theme/Colors.dart';
+import 'package:orbirq/models/user_simulado.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_strings.dart';
-import '../../models/home_item.dart';
 
 class SimuladoCard extends StatelessWidget {
-  final Simulado simulado;
+  final UserSimulado simulado;
   final VoidCallback? onTap;
 
   const SimuladoCard({super.key, required this.simulado, this.onTap});

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/services/response_service.dart';
 import '../models/question.dart';
-import '../services/questao_service.dart';
 
 class QuestaoController extends ChangeNotifier {
-  List<Question> _questions = [];
+  final List<Question> _questions;
   int _currentQuestionIndex = 0;
   Question? _currentQuestion;
   int? _selectedOptionIndex;
@@ -12,12 +14,10 @@ class QuestaoController extends ChangeNotifier {
   bool _isBookmarked = false;
   int _timeRemaining = 300;
   bool _timerActive = false;
-  final int _totalTime = 300; // 5 minutos
+  final int _totalTime = 300; 
 
-  // Estatísticas
-  final Map<int, bool> _answeredQuestions = {}; // questionId -> isCorrect
+  final Map<int, bool> _answeredQuestions = {};
 
-  // Getters
   List<Question> get questions => _questions;
   int get currentQuestionIndex => _currentQuestionIndex;
   Question? get currentQuestion => _currentQuestion;
@@ -32,14 +32,12 @@ class QuestaoController extends ChangeNotifier {
   bool get hasPreviousQuestion => _currentQuestionIndex > 0;
   int get totalQuestions => _questions.length;
 
-  // Estatísticas
   int get answeredQuestions => _answeredQuestions.length;
   int get correctAnswers =>
       _answeredQuestions.values.where((correct) => correct).length;
   int get incorrectAnswers =>
       _answeredQuestions.values.where((correct) => !correct).length;
 
-  // Mensagens motivacionais
   final List<String> _mensagensMotivacionais = [
     "Excelente! Continue assim que você vai longe! 🌟",
     "Impressionante! Você está dominando o assunto! 🎯",
@@ -56,22 +54,17 @@ class QuestaoController extends ChangeNotifier {
     "Não desista! Você está mais perto do acerto. 💫",
   ];
 
-  QuestaoController() {
-    _loadQuestions();
-  }
-
-  void _loadQuestions() {
-    _questions = QuestaoService.getSampleQuestions();
+  QuestaoController({List<Question>? questions}) : _questions = questions ?? [] {
     if (_questions.isNotEmpty) {
       _currentQuestion = _questions[_currentQuestionIndex];
       _resetState();
     }
-    notifyListeners();
   }
 
   void loadQuestion(Question question) {
     _currentQuestion = question;
     _resetState();
+    startQuestionTimer();
     notifyListeners();
   }
 
@@ -122,15 +115,86 @@ class QuestaoController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void checkAnswer() {
-    if (_selectedOptionIndex == null) return;
+  Future<void> checkAnswer() async {
+    if (_selectedOptionIndex == null) {
+      debugPrint('Nenhuma opção selecionada para verificar a resposta');
+      return;
+    }
 
     _showAnswer = true;
     _timerActive = false;
 
-    // Registrar resposta para estatísticas
     if (_currentQuestion != null) {
+      debugPrint('\n=== TENTATIVA DE SALVAR RESPOSTA ===');
+      debugPrint('Questão ID: ${_currentQuestion!.id}');
+      debugPrint('Pergunta: ${_currentQuestion!.text}');
+      debugPrint('Resposta selecionada: ${_currentQuestion!.options[_selectedOptionIndex!].letter}');
+      debugPrint('Resposta correta: ${_currentQuestion!.correctAnswer}');
+      debugPrint('Resposta está correta: $isAnswerCorrect');
+
       _answeredQuestions[_currentQuestion!.id] = isAnswerCorrect;
+      debugPrint('✅ Resposta registrada localmente: ${_answeredQuestions[_currentQuestion!.id]}');
+
+      try {
+        debugPrint('\n=== TENTANDO SALVAR NO BACKEND ===');
+        
+        debugPrint('1. Inicializando usuário...');
+        try {
+          await _initializeUser();
+          debugPrint('✅ Usuário inicializado com sucesso');
+        } catch (e) {
+          debugPrint('❌ Falha ao inicializar usuário: $e');
+          throw Exception('Não foi possível autenticar o usuário');
+        }
+        
+        if (_userId == null) {
+          debugPrint('❌ ID do usuário não encontrado');
+          throw Exception('ID do usuário não encontrado');
+        }
+
+        final timeSpent = _getTimeSpent();
+        debugPrint('\n2. Dados da resposta:');
+        debugPrint('   - ID do usuário: $_userId');
+        debugPrint('   - ID da questão: ${_currentQuestion!.id}');
+        debugPrint('   - Tempo gasto: $timeSpent segundos');
+        debugPrint('   - Matéria: ${_currentQuestion!.subject}');
+        debugPrint('   - Disciplina: ${_currentQuestion!.discipline}');
+        debugPrint('   - Resposta correta: $isAnswerCorrect');
+
+        debugPrint('\n3. Enviando para o servidor...');
+        try {
+          final success = await ResponseService.saveResponse(
+            questionId: _currentQuestion!.id.toString(),
+            questionText: _currentQuestion!.text,
+            userAnswer: _currentQuestion!.options[_selectedOptionIndex!].letter,
+            correctAnswer: _currentQuestion!.correctAnswer,
+            isCorrect: isAnswerCorrect,
+            subject: _currentQuestion!.subject,
+            topic: _currentQuestion!.discipline,
+            timeSpentSeconds: timeSpent,
+          );
+          
+          if (success) {
+            debugPrint('✅ Resposta salva com sucesso no banco de dados!');
+          } else {
+            debugPrint('❌ Falha ao salvar a resposta no banco de dados');
+            throw Exception('Falha ao salvar a resposta no servidor');
+          }
+        } catch (e) {
+          debugPrint('❌ ERRO ao enviar para o servidor:');
+          debugPrint('   Tipo: ${e.runtimeType}');
+          debugPrint('   Mensagem: $e');
+          if (e is Error) {
+            debugPrint('   Stack trace: ${e.stackTrace}');
+          }
+          rethrow;
+        }
+      } catch (e) {
+        debugPrint('\n❌ ERRO CRÍTICO ao salvar resposta:');
+        debugPrint('   $e');
+      } finally {
+        debugPrint('\n=== FIM DO PROCESSAMENTO DA RESPOSTA ===\n');
+      }
     }
 
     notifyListeners();
@@ -161,7 +225,6 @@ class QuestaoController extends ChangeNotifier {
       notifyListeners();
       Future.delayed(const Duration(seconds: 1), _updateTimer);
     } else {
-      // Tempo esgotado
       _timerActive = false;
       _showAnswer = true;
       notifyListeners();
@@ -186,6 +249,56 @@ class QuestaoController extends ChangeNotifier {
     return selectedOption.letter == _currentQuestion!.correctAnswer;
   }
 
+  DateTime? _questionStartTime;
+  int? _userId;
+
+  Future<void> _initializeUser() async {
+    try {
+      debugPrint('=== INICIALIZANDO USUÁRIO ===');
+      final prefs = await SharedPreferences.getInstance();
+      
+      _userId = prefs.getInt('userId');
+      
+      if (_userId == null) {
+        final userIdStr = prefs.getString('userId');
+        if (userIdStr != null) {
+          _userId = int.tryParse(userIdStr);
+        }
+      }
+      
+      final token = prefs.getString('token');
+      
+      debugPrint('ID do usuário: $_userId (tipo: ${_userId?.runtimeType})');
+      debugPrint('Token: ${token != null ? 'presente' : 'ausente'}');
+      debugPrint('Todas as chaves no SharedPreferences: ${prefs.getKeys().join(', ')}');
+      
+      if (_userId == null || token == null) {
+        debugPrint('❌ Usuário não autenticado corretamente');
+        debugPrint('ID do usuário é nulo: ${_userId == null}');
+        debugPrint('Token é nulo: ${token == null}');
+        throw Exception('Usuário não autenticado. Por favor, faça login novamente.');
+      }
+      
+      debugPrint('✅ Usuário inicializado com sucesso');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Erro ao inicializar usuário');
+      debugPrint('Tipo de erro: ${e.runtimeType}');
+      debugPrint('Mensagem: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    } finally {
+      debugPrint('=== FIM DA INICIALIZAÇÃO DO USUÁRIO ===\n');
+    }
+  }
+
+  void startQuestionTimer() {
+    _questionStartTime = DateTime.now();
+  }
+  int? _getTimeSpent() {
+    if (_questionStartTime == null) return null;
+    return DateTime.now().difference(_questionStartTime!).inSeconds;
+  }
+
   String get selectedAnswerLetter {
     if (_currentQuestion == null || _selectedOptionIndex == null) return '';
     return _currentQuestion!.options[_selectedOptionIndex!].letter;
@@ -195,45 +308,22 @@ class QuestaoController extends ChangeNotifier {
     return 'Questão ${_currentQuestionIndex + 1}';
   }
 
-  // Métodos para filtrar questões
   void loadQuestionsByDiscipline(String discipline) {
-    _questions = QuestaoService.getQuestionsByDiscipline(discipline);
-    if (_questions.isNotEmpty) {
-      _currentQuestionIndex = 0;
-      _currentQuestion = _questions[_currentQuestionIndex];
-      _resetState();
-    }
-    notifyListeners();
+    debugPrint('Filtro por disciplina desativado. Use a filtragem no componente pai.');
   }
 
   void loadQuestionsBySubject(String subject) {
-    _questions = QuestaoService.getQuestionsBySubject(subject);
-    if (_questions.isNotEmpty) {
-      _currentQuestionIndex = 0;
-      _currentQuestion = _questions[_currentQuestionIndex];
-      _resetState();
-    }
-    notifyListeners();
+    debugPrint('Filtro por matéria desativado. Use a filtragem no componente pai.');
   }
 
   void loadQuestionsByBoard(String board) {
-    _questions = QuestaoService.getQuestionsByBoard(board);
-    if (_questions.isNotEmpty) {
-      _currentQuestionIndex = 0;
-      _currentQuestion = _questions[_currentQuestionIndex];
-      _resetState();
-    }
-    notifyListeners();
+
+    debugPrint('Filtro por banca desativado. Use a filtragem no componente pai.');
   }
 
   void loadQuestionsByType(QuestionType type) {
-    _questions = QuestaoService.getQuestionsByType(type);
-    if (_questions.isNotEmpty) {
-      _currentQuestionIndex = 0;
-      _currentQuestion = _questions[_currentQuestionIndex];
-      _resetState();
-    }
-    notifyListeners();
+
+    debugPrint('Filtro por tipo de questão desativado. Use a filtragem no componente pai.');
   }
 
   @override

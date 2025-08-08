@@ -52,17 +52,15 @@ class Validators {
 
   static String? validateCpf(String? value) {
     if (value == null || value.isEmpty) {
-      return null; // CPF é opcional
+      return null;
     }
 
-    // Remove caracteres não numéricos
     final cpf = value.replaceAll(RegExp(r'[^\d]'), '');
 
     if (cpf.length != 11) {
       return AppStrings.invalidCpf;
     }
 
-    // Validação básica de CPF
     if (cpf == '00000000000' ||
         cpf == '11111111111' ||
         cpf == '22222222222' ||
@@ -121,7 +119,7 @@ class Validators {
 
   static String? validateUrl(String? value) {
     if (value == null || value.isEmpty) {
-      return null; // URL é opcional
+      return null;
     }
 
     final urlRegex = RegExp(
@@ -136,10 +134,8 @@ class Validators {
   }
 
   static String formatCpf(String cpf) {
-    // Remove caracteres não numéricos
     final numbers = cpf.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Aplica máscara
     if (numbers.length <= 3) {
       return numbers;
     } else if (numbers.length <= 6) {

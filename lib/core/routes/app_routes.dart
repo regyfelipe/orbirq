@@ -19,7 +19,6 @@ class AppRoutes {
   static const String main = '/main';
   static const String simuladoExecucao = '/simulado-execucao';
 
-  // Mapa de rotas
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       splash: (context) => const SplashScreen(),
@@ -42,10 +41,8 @@ class AppRoutes {
     };
   }
 
-  // Rota inicial
   static String get initialRoute => splash;
 
-  // Navegação com push
   static Future<dynamic> pushNamed(
     BuildContext context,
     String routeName, {
@@ -54,7 +51,6 @@ class AppRoutes {
     return Navigator.pushNamed(context, routeName, arguments: arguments);
   }
 
-  // Navegação com pushReplacement
   static Future<dynamic> pushReplacementNamed(
     BuildContext context,
     String routeName, {
@@ -67,7 +63,6 @@ class AppRoutes {
     );
   }
 
-  // Navegação com pushAndRemoveUntil
   static Future<dynamic> pushNamedAndRemoveUntil(
     BuildContext context,
     String routeName, {
@@ -81,7 +76,6 @@ class AppRoutes {
     );
   }
 
-  // Voltar
   static void pop(BuildContext context, [dynamic result]) {
     Navigator.pop(context, result);
   }

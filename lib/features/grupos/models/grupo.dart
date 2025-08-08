@@ -157,7 +157,7 @@ class MensagemGrupo {
   final String autorNome;
   final String? autorAvatar;
   final String conteudo;
-  final String? tipo; // texto, imagem, arquivo, sistema
+  final String? tipo;
   final String? arquivoUrl;
   final String? arquivoNome;
   final DateTime dataEnvio;

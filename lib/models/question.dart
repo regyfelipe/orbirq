@@ -7,7 +7,7 @@ class Question {
   final String exam;
   final String text;
   final List<QuestionOption> options;
-  final String correctAnswer; // Nova propriedade
+  final String correctAnswer;
 
   Question({
     required this.id,

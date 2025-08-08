@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:orbirq/core/theme/Colors.dart';
+import 'package:orbirq/models/user_analise_desempenho.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_strings.dart';
-import '../../models/home_item.dart';
 
 class AnaliseDesempenhoCard extends StatelessWidget {
-  final AnaliseDesempenho analise;
+  final UserAnaliseDesempenho analise;
   final VoidCallback? onTap;
 
   const AnaliseDesempenhoCard({super.key, required this.analise, this.onTap});
@@ -52,7 +52,7 @@ class AnaliseDesempenhoCard extends StatelessWidget {
             ),
             SizedBox(height: AppSizes.md),
             Text(
-              analise.disciplina,
+  analise.titulo ?? 'Título não disponível',
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             SizedBox(height: AppSizes.lg),

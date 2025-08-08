@@ -37,7 +37,6 @@ class SimuladoProgressWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Barra de progresso
           LinearProgressIndicator(
             value: percentualConcluido,
             backgroundColor: Colors.grey[300],
@@ -46,7 +45,6 @@ class SimuladoProgressWidget extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Estatísticas
           Row(
             children: [
               Expanded(
@@ -80,7 +78,6 @@ class SimuladoProgressWidget extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // Texto de progresso
           Text(
             '$questoesRespondidas de $totalQuestoes questões respondidas',
             style: TextStyle(

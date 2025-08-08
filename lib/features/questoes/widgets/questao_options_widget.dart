@@ -26,10 +26,8 @@ class QuestaoOptionsWidget extends StatelessWidget {
         bool? isCorrect;
         if (showAnswer) {
           if (optionLetter == question.correctAnswer) {
-            // Opção correta (sempre verde)
             isCorrect = true;
           } else if (index == selectedOptionIndex) {
-            // Opção selecionada pelo usuário (mas incorreta)
             isCorrect = false;
           }
         }

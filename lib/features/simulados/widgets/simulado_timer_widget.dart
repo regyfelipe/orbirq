@@ -18,8 +18,8 @@ class SimuladoTimerWidget extends StatelessWidget {
     final tempoFormatado =
         '${minutos.toString().padLeft(2, '0')}:${segundos.toString().padLeft(2, '0')}';
 
-    final isTempoBaixo = tempoRestante <= 300; // 5 minutos
-    final isTempoCritico = tempoRestante <= 60; // 1 minuto
+    final isTempoBaixo = tempoRestante <= 300;
+    final isTempoCritico = tempoRestante <= 60;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

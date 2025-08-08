@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:orbirq/core/theme/Colors.dart';
+
 import '../controllers/questao_controller.dart';
+import '../services/questao_service.dart';
 import '../widgets/questao_header_widget.dart';
 import '../widgets/questao_text_widget.dart';
 import '../widgets/questao_options_widget.dart';
 import '../widgets/questao_answer_widget.dart';
 import '../widgets/questao_navigation_widget.dart';
 import '../widgets/questao_stats_widget.dart';
+import 'package:orbirq/core/services/logger_service.dart';
 
 class QuestaoScreen extends StatefulWidget {
   const QuestaoScreen({super.key});
@@ -18,16 +21,67 @@ class QuestaoScreen extends StatefulWidget {
 
 class _QuestaoScreenState extends State<QuestaoScreen> {
   late QuestaoController _controller;
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _controller = QuestaoController();
-    _loadQuestion();
+    _controller = QuestaoController(questions: []);
+    _loadQuestions();
   }
 
-  void _loadQuestion() {
-    // O controller já carrega as questões automaticamente
+  Future<void> _loadQuestions() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
+    try {
+      LoggerService.info('Loading questions from database...');
+      final questaoService = QuestaoService();
+      final questions = await questaoService.getAllQuestions();
+      
+      if (questions.isEmpty) {
+        LoggerService.warning('No questions found in the database');
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Nenhuma questão encontrada no banco de dados.';
+          });
+        }
+        return;
+      }
+
+      LoggerService.success('Successfully loaded ${questions.length} questions');
+      
+      if (mounted) {
+        setState(() {
+          _controller = QuestaoController(questions: questions);
+          _isLoading = false;
+        });
+        
+        final questionCount = questions.length > 3 ? 3 : questions.length;
+        for (var i = 0; i < questionCount; i++) {
+          LoggerService.debug('Question ${i + 1}: ${questions[i].text.substring(0, 30)}...');
+        }
+      }
+    } catch (e, stackTrace) {
+      LoggerService.error(
+        'Error loading questions', 
+        error: e,
+        stackTrace: stackTrace,
+      );
+      
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Erro ao carregar as questões. Por favor, tente novamente.';
+        });
+      }
+    }
   }
 
   @override
@@ -38,6 +92,85 @@ class _QuestaoScreenState extends State<QuestaoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Carregando...'),
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Carregando questões...'),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    if (_errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Erro'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _loadQuestions,
+                  child: const Text('Tentar Novamente'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _loadQuestions,
+                  child: const Text('Tentar novamente'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return ChangeNotifierProvider.value(
       value: _controller,
       child: Scaffold(

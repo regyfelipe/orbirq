@@ -3,6 +3,7 @@ import 'dart:math';
 import '../models/simulado.dart';
 import '../../../features/questoes/models/question.dart';
 import '../../../features/questoes/services/questao_service.dart';
+import '../../../core/services/logger_service.dart';
 
 class SimuladoService {
   static final List<Simulado> _simulados = [
@@ -98,15 +99,13 @@ class SimuladoService {
 
   static final Map<String, SimuladoExecucao> _execucoes = {};
 
-  // Buscar todos os simulados
   static Future<List<Simulado>> getAllSimulados() async {
     await Future.delayed(
       const Duration(milliseconds: 500),
-    ); // Simular delay de rede
+    );
     return _simulados;
   }
 
-  // Buscar simulados por filtros
   static Future<List<Simulado>> getSimuladosByFilter({
     String? titulo,
     List<String>? disciplinas,
@@ -165,7 +164,6 @@ class SimuladoService {
     }).toList();
   }
 
-  // Buscar simulado por ID
   static Future<Simulado?> getSimuladoById(String id) async {
     await Future.delayed(const Duration(milliseconds: 200));
     try {
@@ -175,7 +173,6 @@ class SimuladoService {
     }
   }
 
-  // Iniciar simulado
   static Future<SimuladoExecucao> iniciarSimulado(
     String simuladoId,
     String userId,
@@ -202,7 +199,6 @@ class SimuladoService {
     return execucao;
   }
 
-  // Pausar simulado
   static Future<SimuladoExecucao> pausarSimulado(String execucaoId) async {
     await Future.delayed(const Duration(milliseconds: 200));
 
@@ -219,7 +215,6 @@ class SimuladoService {
     return execucaoAtualizada;
   }
 
-  // Retomar simulado
   static Future<SimuladoExecucao> retomarSimulado(String execucaoId) async {
     await Future.delayed(const Duration(milliseconds: 200));
 
@@ -236,7 +231,6 @@ class SimuladoService {
     return execucaoAtualizada;
   }
 
-  // Finalizar simulado
   static Future<SimuladoExecucao> finalizarSimulado(String execucaoId) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -250,7 +244,6 @@ class SimuladoService {
       throw Exception('Simulado não encontrado');
     }
 
-    // Calcular estatísticas
     final acertosTotal = execucao.acertos.values
         .where((acertou) => acertou)
         .length;
@@ -275,7 +268,6 @@ class SimuladoService {
     return execucaoAtualizada;
   }
 
-  // Responder questão
   static Future<SimuladoExecucao> responderQuestao(
     String execucaoId,
     int questaoIndex,
@@ -305,7 +297,6 @@ class SimuladoService {
     return execucaoAtualizada;
   }
 
-  // Atualizar tempo restante
   static Future<SimuladoExecucao> atualizarTempoRestante(
     String execucaoId,
     int tempoRestante,
@@ -321,13 +312,10 @@ class SimuladoService {
     return execucaoAtualizada;
   }
 
-  // Buscar execução por ID
   static Future<SimuladoExecucao?> getExecucaoById(String execucaoId) async {
     await Future.delayed(const Duration(milliseconds: 100));
     return _execucoes[execucaoId];
   }
-
-  // Buscar execuções do usuário
   static Future<List<SimuladoExecucao>> getExecucoesByUserId(
     String userId,
   ) async {
@@ -337,37 +325,43 @@ class SimuladoService {
         .toList();
   }
 
-  // Gerar questões para o simulado
   static Future<List<Question>> gerarQuestoesParaSimulado(
     String simuladoId,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-
     final simulado = await getSimuladoById(simuladoId);
-    if (simulado == null) {
-      throw Exception('Simulado não encontrado');
-    }
+    if (simulado == null) return [];
 
-    // Buscar questões baseadas nos critérios do simulado
-    List<Question> questoes = [];
+    List<Question> questoes;
 
     if (simulado.disciplinas.isNotEmpty) {
+      final List<Question> questoesPorDisciplina = [];
+      final questaoService = QuestaoService();
       for (final disciplina in simulado.disciplinas) {
-        final questoesDisciplina = QuestaoService.getQuestionsByDiscipline(
+        final questoesDisciplina = await questaoService.getQuestionsByDiscipline(
           disciplina,
         );
-        questoes.addAll(questoesDisciplina);
+        questoesPorDisciplina.addAll(questoesDisciplina);
       }
+      questoes = questoesPorDisciplina;
     } else if (simulado.assuntos.isNotEmpty) {
+      final List<Question> questoesPorAssunto = [];
       for (final assunto in simulado.assuntos) {
-        final questoesAssunto = QuestaoService.getQuestionsBySubject(assunto);
-        questoes.addAll(questoesAssunto);
+        final questaoService = QuestaoService();
+        final questoesAssunto = await questaoService.getQuestionsBySubject(assunto);
+        questoesPorAssunto.addAll(questoesAssunto);
       }
+      questoes = questoesPorAssunto;
     } else {
-      questoes = QuestaoService.getSampleQuestions();
+      final questaoService = QuestaoService();
+      try {
+        final sampleQuestion = await questaoService.getQuestionById(1);
+        questoes = [sampleQuestion];
+      } catch (e) {
+        LoggerService.error('Error getting sample question', error: e);
+        questoes = [];
+      }
     }
 
-    // Embaralhar e limitar ao número de questões do simulado
     questoes.shuffle(Random());
     if (questoes.length > simulado.totalQuestoes) {
       questoes = questoes.take(simulado.totalQuestoes).toList();
@@ -376,7 +370,6 @@ class SimuladoService {
     return questoes;
   }
 
-  // Verificar se usuário pode acessar simulado
   static Future<bool> verificarAcessoSimulado(
     String simuladoId,
     String userId,
@@ -386,11 +379,8 @@ class SimuladoService {
     final simulado = await getSimuladoById(simuladoId);
     if (simulado == null) return false;
 
-    // Se é gratuito, sempre pode acessar
     if (simulado.isGratuito) return true;
 
-    // TODO: Implementar verificação de pagamento
-    // Por enquanto, simulamos que o usuário tem acesso
     return true;
   }
 }

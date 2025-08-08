@@ -1,5 +1,4 @@
 class AppStrings {
-  // Títulos
   static const String appTitle = 'Orbirq';
   static const String loginTitle = 'Login';
   static const String signUpTitle = 'Tela de Cadastro';
@@ -7,7 +6,6 @@ class AppStrings {
   static const String questionsTitle = 'orbira';
   static const String homeTitle = 'orbira';
 
-  // Labels
   static const String emailLabel = 'Email';
   static const String passwordLabel = 'Senha';
   static const String loginButton = 'Entrar';
@@ -20,7 +18,6 @@ class AppStrings {
   static const String resetPasswordButton = 'Enviar Email';
   static const String backToLoginText = 'Voltar ao Login';
 
-  // Home
   static const String ultimosAcessos = 'Ultimos acessos';
   static const String simuladosNovos = 'Simulados novos';
   static const String analiseDesempenho = 'Analise de desempenho';
@@ -28,14 +25,12 @@ class AppStrings {
   static const String iniciarSimulado = 'Iniciar Simulado';
   static const String verAnalise = 'Ver Análise';
 
-  // Navigation Bar
   static const String navHome = 'Home';
   static const String navQuestoes = 'Questões';
   static const String navSimulados = 'Simulados';
   static const String navGrupos = 'Grupos';
   static const String navPerfil = 'Perfil';
 
-  // Home Interactive Elements
   static const String seuProgresso = 'Seu Progresso';
   static const String acoesRapidas = 'Ações Rápidas';
   static const String desafioDoDia = 'Desafio do Dia';
@@ -59,7 +54,6 @@ class AppStrings {
   static const String media = 'Média';
   static const String dias = 'Dias';
 
-  // Questões
   static const String questionMetadata = 'Id_Questao Disciplina Assunto';
   static const String questionYear = 'Ano: 2005';
   static const String questionBoard = 'Banca: Cespe';
@@ -70,7 +64,6 @@ class AppStrings {
   static const String optionD = 'D';
   static const String optionE = 'E';
 
-  // Mensagens
   static const String emailRequired = 'Por favor, insira seu email';
   static const String passwordRequired = 'Por favor, insira sua senha';
   static const String loginSuccess = 'Login realizado com sucesso!';
@@ -84,7 +77,6 @@ class AppStrings {
   static const String resetPasswordDescription =
       'Digite seu email para receber um link de recuperação de senha.';
 
-  // Campos do cadastro - Aluno
   static const String cpfLabel = 'CPF (opcional)';
   static const String birthDateLabel = 'Data de nascimento (opcional)';
   static const String stateLabel = 'Estado (UF) (opcional)';
@@ -92,7 +84,6 @@ class AppStrings {
   static const String inviteCodeLabel = 'Código de convite (opcional)';
   static const String profilePhotoLabel = 'Foto de perfil (opcional)';
 
-  // Campos do cadastro - Professor
   static const String miniBioLabel = 'Mini bio';
   static const String miniBioHint = 'Conte um pouco sobre sua experiência...';
   static const String areaOfExpertiseLabel = 'Área de atuação';
@@ -105,7 +96,6 @@ class AppStrings {
   static const String referralCodeLabel = 'Código de indicação (opcional)';
   static const String referralCodeHint = 'Código de outro professor';
 
-  // Validações
   static const String passwordMinLength =
       'A senha deve ter pelo menos 6 caracteres';
   static const String invalidEmail = 'Email inválido';
@@ -117,14 +107,12 @@ class AppStrings {
   static const String miniBioRequired = 'Mini bio é obrigatória';
   static const String areaOfExpertiseRequired = 'Área de atuação é obrigatória';
 
-  // Termos e LGPD
   static const String termsTitle = 'Termos de Uso e Política de Privacidade';
   static const String termsText =
       'Li e aceito os Termos de Uso e Política de Privacidade';
   static const String lgpdText =
       'Concordo com o tratamento dos meus dados pessoais conforme a LGPD';
 
-  // Estados brasileiros
   static const List<String> brazilianStates = [
     'AC',
     'AL',
@@ -155,7 +143,6 @@ class AppStrings {
     'TO',
   ];
 
-  // Concursos/Objetivos
   static const List<String> targetExams = [
     'PF - Polícia Federal',
     'PRF - Polícia Rodoviária Federal',
@@ -169,7 +156,6 @@ class AppStrings {
     'Outro',
   ];
 
-  // Áreas de atuação
   static const List<String> areasOfExpertise = [
     'Português',
     'Matemática',
@@ -187,13 +173,11 @@ class AppStrings {
     'Outra',
   ];
 
-  // Assets white
   static const String logo = 'assets/white/logo.png';
   static const String logoSplash = 'assets/white/logo-splash.png';
   static const String avatar = 'assets/white/avatar.png';
 
 
-  // Novos elementos da tela de login
   static const String forgotPasswordText = 'esqueceu a senha?';
   static const String clickHere = 'Clique aqui';
   static const String orSeparator = 'Ou';

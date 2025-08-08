@@ -110,7 +110,6 @@ class SimuladoNavigationWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        // TODO: Implementar navegação direta para questão
       },
       child: Container(
         height: 40,
@@ -140,7 +139,6 @@ class SimuladoNavigationWidget extends StatelessWidget {
 
     return Row(
       children: [
-        // Botão Pausar
         Expanded(
           child: OutlinedButton.icon(
             onPressed: onPausar,
@@ -155,7 +153,6 @@ class SimuladoNavigationWidget extends StatelessWidget {
         ),
         const SizedBox(width: AppSizes.sm),
 
-        // Botão Anterior
         Expanded(
           child: OutlinedButton.icon(
             onPressed: isPrimeiraQuestao ? null : onAnterior,
@@ -170,7 +167,6 @@ class SimuladoNavigationWidget extends StatelessWidget {
         ),
         const SizedBox(width: AppSizes.sm),
 
-        // Botão Próxima/Finalizar
         Expanded(
           child: ElevatedButton.icon(
             onPressed: isUltimaQuestao && todasRespondidas

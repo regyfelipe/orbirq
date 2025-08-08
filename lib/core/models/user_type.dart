@@ -17,4 +17,7 @@ enum UserType {
         return 'Aluno';
     }
   }
+
+  String toJson() => name;
+  static UserType fromJson(String json) => fromString(json);
 }

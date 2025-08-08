@@ -12,10 +12,8 @@ class AppTheme {
         background: AppColors.background,
       ),
 
-      // Scaffold background
       scaffoldBackgroundColor: AppColors.background,
 
-      // AppBar theme
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -23,7 +21,6 @@ class AppTheme {
         centerTitle: true,
       ),
 
-      // ElevatedButton theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -35,7 +32,6 @@ class AppTheme {
         ),
       ),
 
-      // InputDecoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
@@ -63,7 +59,6 @@ class AppTheme {
         ),
       ),
 
-      // Text theme
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
           color: Colors.white,

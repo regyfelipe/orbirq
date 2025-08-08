@@ -1,6 +1,9 @@
 import Fastify from 'fastify';
 import dotenv from 'dotenv';
 import { authRoutes } from './routes/auth';
+import { userRoutes } from './routes/user.routes';
+import { responseRoutes } from './routes/response.routes';
+import questionRoutes from './routes/question.routes';
 import pool from './config/database';
 
 dotenv.config();
@@ -9,13 +12,14 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 const fastify = Fastify({
-  logger: true, // ativa logs para debug
+  logger: true, 
 });
 
-// Registro das rotas (auth etc)
-fastify.register(authRoutes);
+fastify.register(authRoutes, { prefix: '/auth' });
+fastify.register(userRoutes, { prefix: '/users' });
+fastify.register(responseRoutes, { prefix: '/responses' });
+fastify.register(questionRoutes, { prefix: '/questions' });
 
-// Rota de teste simples para verificar servidor e banco
 fastify.get('/ping', async (request, reply) => {
   try {
     const client = await pool.connect();
@@ -28,7 +32,6 @@ fastify.get('/ping', async (request, reply) => {
   }
 });
 
-// Inicialização do servidor
 const start = async () => {
   try {
     await fastify.listen({ port: PORT, host: HOST });

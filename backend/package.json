@@ -7,7 +7,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "ts-node scripts/apply-migrations.ts",
+    "migrate:dev": "ts-node-dev --respawn --transpile-only scripts/apply-migrations.ts"
   },
   "keywords": [
     "fastify",
@@ -23,7 +25,8 @@
     "dotenv": "^17.2.1",
     "fastify": "^4.22.1",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "zod": "^4.0.15"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

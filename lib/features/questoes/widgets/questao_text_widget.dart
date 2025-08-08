@@ -13,17 +13,13 @@ class QuestaoTextWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Texto de apoio (se existir)
         if (question.supportingText != null) ...[
           QuestaoSupportingTextWidget(supportingText: question.supportingText!),
         ],
-
-        // Imagem (se existir)
         if (question.imageUrl != null) ...[
           QuestaoImageWidget(imageUrl: question.imageUrl!),
         ],
 
-        // Pergunta principal
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),

@@ -127,7 +127,6 @@ class _SimuladoExecucaoScreenState extends State<SimuladoExecucaoScreen> {
                 simulado: controller.simuladoAtual!,
                 execucao: controller.execucaoAtual!,
                 onVerGabarito: () {
-                  // TODO: Implementar visualização do gabarito
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Funcionalidade em desenvolvimento'),

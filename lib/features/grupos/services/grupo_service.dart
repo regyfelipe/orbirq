@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:orbirq/features/grupos/models/grupo.dart';
 
 class GrupoService {
-  // Dados mockados para demonstração
   static final List<Grupo> _grupos = [
     Grupo(
       id: 'grupo1',
@@ -121,9 +120,8 @@ class GrupoService {
     ],
   };
 
-  // Métodos para Grupos
   static Future<List<Grupo>> getAllGrupos() async {
-    await Future.delayed(const Duration(milliseconds: 500)); // Simular delay
+    await Future.delayed(const Duration(milliseconds: 500));
     return _grupos.where((g) => g.status == GrupoStatus.ativo).toList();
   }
 
@@ -234,7 +232,6 @@ class GrupoService {
 
     _membros[grupoId] = [...membros, novoMembro];
 
-    // Atualizar contador de membros
     final index = _grupos.indexWhere((g) => g.id == grupoId);
     if (index != -1) {
       _grupos[index] = _grupos[index].copyWith(
@@ -255,7 +252,6 @@ class GrupoService {
       membros.removeAt(index);
       _membros[grupoId] = membros;
 
-      // Atualizar contador de membros
       final grupoIndex = _grupos.indexWhere((g) => g.id == grupoId);
       if (grupoIndex != -1) {
         _grupos[grupoIndex] = _grupos[grupoIndex].copyWith(
@@ -287,7 +283,6 @@ class GrupoService {
     return false;
   }
 
-  // Métodos para Mensagens
   static Future<List<MensagemGrupo>> getMensagensGrupo(
     String grupoId, {
     int limit = 50,
@@ -369,7 +364,6 @@ class GrupoService {
     return false;
   }
 
-  // Verificações de permissão
   static Future<bool> verificarPermissao(
     String grupoId,
     String userId,

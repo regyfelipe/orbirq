@@ -229,7 +229,6 @@ class _SimuladoListaScreenState extends State<SimuladoListaScreen> {
   }
 
   void _onSimuladoTap(simulado) {
-    // Navegar para a tela de detalhes do simulado
     Navigator.pushNamed(context, '/simulado-detalhes', arguments: simulado);
   }
 }

@@ -88,12 +88,12 @@ class SimuladoExecucao {
   final String userId;
   final DateTime dataInicio;
   final DateTime? dataFim;
-  final int tempoTotal; // em segundos
-  final int tempoRestante; // em segundos
+  final int tempoTotal;
+  final int tempoRestante;
   final SimuladoStatus status;
   final int questaoAtual;
-  final Map<int, String> respostas; // questaoIndex -> resposta
-  final Map<int, bool> acertos; // questaoIndex -> acertou
+  final Map<int, String> respostas;
+  final Map<int, bool> acertos;
   final double? pontuacaoFinal;
   final int? acertosTotal;
   final int? errosTotal;

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
 import 'package:orbirq/core/theme/Colors.dart';
 import 'package:orbirq/core/services/auth_service.dart';
+import 'package:orbirq/widgets/custom/PhotoPickerField.dart';
 import 'package:orbirq/widgets/custom/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_sizes.dart';
@@ -12,7 +15,6 @@ import '../../widgets/custom/custom_link_text.dart';
 import '../../widgets/custom/custom_checkbox_field.dart';
 import '../../widgets/custom/custom_dropdown_field.dart';
 import '../../widgets/custom/custom_date_picker_field.dart';
-import '../../widgets/custom/custom_profile_photo_field.dart';
 import '../../core/routes/app_routes.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -25,28 +27,22 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers para campos comuns
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  // Controllers para campos comuns adicionais
   final _phoneController = TextEditingController();
   final _institutionController = TextEditingController();
   final _registrationNumberController = TextEditingController();
 
-  // Controllers para campos do aluno
   final _cpfController = TextEditingController();
   final _inviteCodeController = TextEditingController();
 
-  // Controllers para campos do professor
   final _miniBioController = TextEditingController();
   final _instagramOrWebsiteController = TextEditingController();
   final _proofDocumentController = TextEditingController();
   final _referralCodeController = TextEditingController();
 
-  // Estados
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   UserType _selectedUserType = UserType.aluno;
@@ -56,7 +52,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   DateTime? _selectedBirthDate;
   String? _profilePhotoPath;
 
-  // State for checkboxes and loading
   bool _termsAccepted = false;
   bool _lgpdAccepted = false;
   bool _isLoading = false;
@@ -77,77 +72,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _handleSignUp() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  if (_formKey.currentState!.validate()) {
+    setState(() {
+      _isLoading = true;
+    });
 
-      try {
-        final authService = Provider.of<AuthService>(context, listen: false);
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
 
-        final success = await authService.signup(
-  name: _fullNameController.text.trim(),
-  email: _emailController.text.trim(),
-  password: _passwordController.text,
-  userType: _selectedUserType,
-  cpf: _cpfController.text.isNotEmpty ? _cpfController.text : null,
-  phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-  institution: _institutionController.text.isNotEmpty ? _institutionController.text : null,
-  registrationNumber: _registrationNumberController.text.isNotEmpty ? _registrationNumberController.text : null,
-  course: _selectedTargetExam,
-  photoUrl: _profilePhotoPath != null ? _profilePhotoPath : null,
-  // campos do professor:
-  miniBio: _selectedUserType == UserType.professor ? _miniBioController.text.trim() : null,
-  instagramOrWebsite: _selectedUserType == UserType.professor ? _instagramOrWebsiteController.text.trim() : null,
-  proofDocument: _selectedUserType == UserType.professor ? _proofDocumentController.text.trim() : null,
-  referralCode: _selectedUserType == UserType.professor ? _referralCodeController.text.trim() : null,
-);
-        print('Signup success: $success, error: ${authService.error}');
+      String? base64Image;
+      if (_profilePhotoPath != null) {
+        final bytes = await File(_profilePhotoPath!).readAsBytes();
+        base64Image = base64Encode(bytes);
+      }
 
+      final success = await authService.signup(
+        name: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        userType: _selectedUserType,
+        cpf: _cpfController.text.isNotEmpty ? _cpfController.text : null,
+        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
+        institution: _institutionController.text.isNotEmpty ? _institutionController.text : null,
+        registrationNumber: _registrationNumberController.text.isNotEmpty ? _registrationNumberController.text : null,
+        course: _selectedTargetExam,
+        photoUrl: base64Image,
+        miniBio: _selectedUserType == UserType.professor ? _miniBioController.text.trim() : null,
+        instagramOrWebsite: _selectedUserType == UserType.professor ? _instagramOrWebsiteController.text.trim() : null,
+        proofDocument: _selectedUserType == UserType.professor ? _proofDocumentController.text.trim() : null,
+        referralCode: _selectedUserType == UserType.professor ? _referralCodeController.text.trim() : null,
+      );
+      print('Signup success: $success, error: ${authService.error}');
 
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
 
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(AppStrings.signUpSuccess),
-                backgroundColor: AppColors.success,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.radius),
-                ),
-              ),
-            );
-
-            // Navigate to home screen after successful signup
-            AppRoutes.pop(context);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  authService.error ?? 'Erro desconhecido no cadastro',
-                ),
-                backgroundColor: Colors.red,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.radius),
-                ),
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-
+        if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Erro no cadastro: ${e.toString()}'),
+              content: const Text(AppStrings.signUpSuccess),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSizes.radius),
+              ),
+            ),
+          );
+
+          AppRoutes.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                authService.error ?? 'Erro desconhecido no cadastro',
+              ),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -157,15 +137,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         }
       }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro no cadastro: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSizes.radius),
+            ),
+          ),
+        );
+      }
     }
   }
+}
 
   void _handleBackToLogin() {
     AppRoutes.pop(context);
   }
 
   void _handlePhotoSelection() {
-    // Simular seleção de foto
     setState(() {
       _profilePhotoPath = AppStrings.avatar;
     });
@@ -206,7 +203,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget _buildStudentFields() {
     return Column(
       children: [
-        // CPF (opcional)
         CustomTextField(
           label: AppStrings.cpfLabel,
           controller: _cpfController,
@@ -216,7 +212,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: AppSizes.lg),
 
-        // Data de nascimento (opcional)
         CustomDatePickerField(
           label: AppStrings.birthDateLabel,
           selectedDate: _selectedBirthDate,
@@ -228,7 +223,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: AppSizes.lg),
 
-        // Estado (opcional)
         CustomDropdownField(
           label: AppStrings.stateLabel,
           value: _selectedState,
@@ -238,11 +232,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _selectedState = value;
             });
           },
-          // cor do label removido pois labelStyle não é um parâmetro válido
         ),
         SizedBox(height: AppSizes.lg),
 
-        // Objetivo/Concurso-alvo (opcional)
         CustomDropdownField(
           label: AppStrings.targetExamLabel,
           value: _selectedTargetExam,
@@ -252,16 +244,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _selectedTargetExam = value;
             });
           },
-          // cor do label removido pois labelStyle não é um parâmetro válido
         ),
         SizedBox(height: AppSizes.lg),
 
-        // Código de convite (opcional)
         CustomTextField(
           label: AppStrings.inviteCodeLabel,
           controller: _inviteCodeController,
           prefixIcon: const Icon(Icons.card_giftcard),
-          // cor do label removido pois labelStyle não é um parâmetro válido
         ),
         SizedBox(height: AppSizes.lg),
       ],
@@ -271,22 +260,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget _buildTeacherFields() {
     return Column(
       children: [
-        // Mini bio (obrigatório)
         TextFormField(
           controller: _miniBioController,
           maxLines: 3,
+          style: TextStyle(color: Colors.black),
           decoration: InputDecoration(
             labelText: 'Mini Bio',
+            labelStyle: TextStyle(color: Colors.black54),
             hintText: 'Fale um pouco sobre você',
+            hintStyle: TextStyle(color: Colors.black38),
             border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.description),
+            prefixIcon: Icon(Icons.description, color: Colors.black54),
           ),
           validator: (value) =>
               value == null || value.isEmpty ? 'Campo obrigatório' : null,
         ),
         SizedBox(height: AppSizes.lg),
 
-        // Área de atuação (obrigatório)
         DropdownButtonFormField<String>(
           value: _selectedAreaOfExpertise,
           decoration: InputDecoration(
@@ -324,7 +314,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: AppSizes.lg),
 
-        // Instagram ou site (opcional)
         TextFormField(
           controller: _instagramOrWebsiteController,
           decoration: InputDecoration(
@@ -337,7 +326,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: AppSizes.lg),
 
-        // Comprovação (opcional)
         CustomTextField(
           label: AppStrings.proofDocumentLabel,
           controller: _proofDocumentController,
@@ -417,15 +405,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       SizedBox(height: AppSizes.xl),
 
                       // Foto de perfil
-                      CustomProfilePhotoField(
+                      CustomPhotoPickerField(
                         photoPath: _profilePhotoPath,
-                        onPhotoSelected: _handlePhotoSelection,
+                        onPhotoSelected: (path) {
+                          setState(() {
+                            _profilePhotoPath = path;
+                          });
+                        },
                         isRequired: _selectedUserType == UserType.professor,
                         validator: (value) => Validators.validateProfilePhoto(
                           value,
                           _selectedUserType == UserType.professor,
                         ),
                       ),
+
                       SizedBox(height: AppSizes.xl),
 
                       // Campos comuns

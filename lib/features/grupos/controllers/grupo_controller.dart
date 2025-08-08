@@ -4,35 +4,28 @@ import 'package:orbirq/features/grupos/models/grupo.dart';
 import 'package:orbirq/features/grupos/services/grupo_service.dart';
 
 class GrupoController extends ChangeNotifier {
-  // Estado dos grupos
   List<Grupo> _grupos = [];
   List<Grupo> _gruposFiltrados = [];
   Grupo? _grupoAtual;
   bool _isLoadingGrupos = false;
   String? _errorGrupos;
 
-  // Estado dos membros
   List<MembroGrupo> _membros = [];
   bool _isLoadingMembros = false;
   String? _errorMembros;
-
-  // Estado das mensagens
   List<MensagemGrupo> _mensagens = [];
   bool _isLoadingMensagens = false;
   String? _errorMensagens;
   bool _isEnviandoMensagem = false;
 
-  // Estado do usuário atual
-  final String _userId = 'user123'; // TODO: Obter do AuthService
-  final String _nomeUsuario = 'Usuário Atual'; // TODO: Obter do AuthService
+  final String _userId = 'user123';
+  final String _nomeUsuario = 'Usuário Atual';
 
-  // Filtros
   String _busca = '';
   List<String> _disciplinasFiltro = [];
   GrupoTipo? _tipoFiltro;
   bool? _requerAprovacaoFiltro;
 
-  // Getters
   List<Grupo> get grupos => _grupos;
   List<Grupo> get gruposFiltrados => _gruposFiltrados;
   Grupo? get grupoAtual => _grupoAtual;
@@ -51,13 +44,12 @@ class GrupoController extends ChangeNotifier {
   String get userId => _userId;
   String get nomeUsuario => _nomeUsuario;
 
-  // Filtros
   String get busca => _busca;
   List<String> get disciplinasFiltro => _disciplinasFiltro;
   GrupoTipo? get tipoFiltro => _tipoFiltro;
   bool? get requerAprovacaoFiltro => _requerAprovacaoFiltro;
 
-  // Computed
+  
   bool get temGrupoAtual => _grupoAtual != null;
   bool get isMembroAtual => _membros.any(
     (m) => m.userId == _userId && m.status == MembroStatus.ativo,
@@ -74,7 +66,6 @@ class GrupoController extends ChangeNotifier {
     _carregarGrupos();
   }
 
-  // Métodos para Grupos
   Future<void> _carregarGrupos() async {
     _setLoadingGrupos(true);
     _setErrorGrupos(null);
@@ -140,7 +131,7 @@ class GrupoController extends ChangeNotifier {
       );
       if (sucesso) {
         await carregarGrupo(grupoId);
-        await _carregarGrupos(); // Atualizar contadores
+        await _carregarGrupos();
       }
       return sucesso;
     } catch (e) {
@@ -154,7 +145,7 @@ class GrupoController extends ChangeNotifier {
       final sucesso = await GrupoService.sairGrupo(grupoId, _userId);
       if (sucesso) {
         await carregarGrupo(grupoId);
-        await _carregarGrupos(); // Atualizar contadores
+        await _carregarGrupos();
       }
       return sucesso;
     } catch (e) {
@@ -163,7 +154,6 @@ class GrupoController extends ChangeNotifier {
     }
   }
 
-  // Métodos para Grupo Atual
   Future<void> carregarGrupo(String grupoId) async {
     _setLoadingGrupos(true);
     _setErrorGrupos(null);
@@ -191,7 +181,6 @@ class GrupoController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Métodos para Membros
   Future<void> _carregarMembros(String grupoId) async {
     _setLoadingMembros(true);
     _setErrorMembros(null);
@@ -221,7 +210,6 @@ class GrupoController extends ChangeNotifier {
     }
   }
 
-  // Métodos para Mensagens
   Future<void> _carregarMensagens(String grupoId) async {
     _setLoadingMensagens(true);
     _setErrorMensagens(null);
@@ -336,7 +324,6 @@ class GrupoController extends ChangeNotifier {
     }
   }
 
-  // Métodos privados para atualizar estado
   void _setLoadingGrupos(bool loading) {
     _isLoadingGrupos = loading;
     notifyListeners();
